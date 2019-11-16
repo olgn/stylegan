@@ -13,6 +13,36 @@ from dnnlib import EasyDict
 
 import config
 from metrics import metric_base
+import argparse
+
+def get_args(arg_input, train):
+    """Takes args input and returns them as a argparse parser
+    Parameters
+    -------------
+    arg_input : list, shape (n_nargs,)
+        contains list of arguments passed to function
+    Returns
+    -------------
+    args : namespace
+        contains namespace with keys and values for each parser argument
+    """
+    print(type(arg_input))
+    parser = argparse.ArgumentParser(description='train stylegan network')
+    parser.add_argument(
+        '-d',
+        '--resume_run_id',
+        type=str,
+        default=None,
+        help="which training run to resume"
+    )
+
+    # parse args
+    args = parser.parse_args(arg_input)
+
+    # assign args to train dictionary
+    train.resume_run_id = args.resume_run_id
+
+
 
 #----------------------------------------------------------------------------
 # Official training configs for StyleGAN, targeted mainly for FFHQ.
@@ -175,7 +205,8 @@ if 0:
 # Main entry point for training.
 # Calls the function indicated by 'train' using the selected options.
 
-def main():
+def main(args=None):
+    a = get_args(args, train)
     kwargs = EasyDict(train)
     kwargs.update(G_args=G, D_args=D, G_opt_args=G_opt, D_opt_args=D_opt, G_loss_args=G_loss, D_loss_args=D_loss)
     kwargs.update(dataset_args=dataset, sched_args=sched, grid_args=grid, metric_arg_list=metrics, tf_config=tf_config)
