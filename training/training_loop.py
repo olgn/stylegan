@@ -149,6 +149,7 @@ def training_loop(
     with tf.device('/gpu:0'):
         if resume_run_id is not None:
             network_pkl = misc.locate_network_pkl(resume_run_id, resume_snapshot)
+            resume_kimg = misc.get_resume_kimg_from_network_pkl(network_pkl)
             print('Loading networks from "%s"...' % network_pkl)
             G, D, Gs = misc.load_pkl(network_pkl)
         else:
@@ -193,7 +194,7 @@ def training_loop(
 
     print('Setting up snapshot image grid...')
     grid_size, grid_reals, grid_labels, grid_latents = misc.setup_snapshot_image_grid(G, training_set, **grid_args)
-    sched = training_schedule(cur_nimg=total_kimg*1000, training_set=training_set, num_gpus=submit_config.num_gpus, **sched_args)
+    sched = training_schedule(cur_nimg=resume_kimg*1000, training_set=training_set, num_gpus=submit_config.num_gpus, **sched_args)
     grid_fakes = Gs.run(grid_latents, grid_labels, is_validation=True, minibatch_size=sched.minibatch//submit_config.num_gpus)
 
     print('Setting up run dir...')

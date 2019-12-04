@@ -146,6 +146,11 @@ def get_id_string_for_network_pkl(network_pkl):
     p = network_pkl.replace('.pkl', '').replace('\\', '/').split('/')
     return '-'.join(p[max(len(p) - 2, 0):])
 
+def get_resume_kimg_from_network_pkl(network_pkl):
+    resume_kimg = float(network_pkl.replace('.pkl', '').split('-')[-1])
+    print(f'Inferred resume_kimg = {resume_kimg} from network pkl.')
+    return resume_kimg
+
 #----------------------------------------------------------------------------
 # Loading data from previous training runs.
 
