@@ -1,0 +1,6 @@
+data/*
+cache/*
+.vscode/*
+datasets/*
+results/*
+**/__pycache__/**
