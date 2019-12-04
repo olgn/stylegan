@@ -228,8 +228,11 @@ def training_loop(
         # Run training ops.
         for _mb_repeat in range(minibatch_repeats):
             for _D_repeat in range(D_repeats):
-                tflib.run([D_train_op, Gs_update_op], {lod_in: sched.lod, lrate_in: sched.D_lrate, minibatch_in: sched.minibatch})
-                cur_nimg += sched.minibatch
+                try:
+                    tflib.run([D_train_op, Gs_update_op], {lod_in: sched.lod, lrate_in: sched.D_lrate, minibatch_in: sched.minibatch})
+                    cur_nimg += sched.minibatch
+                except tf.errors.OutOfRangeError:
+                    pass
             tflib.run([G_train_op], {lod_in: sched.lod, lrate_in: sched.G_lrate, minibatch_in: sched.minibatch})
 
         # Perform maintenance tasks once per tick.
