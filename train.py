@@ -26,7 +26,6 @@ def get_args(arg_input, train):
     args : namespace
         contains namespace with keys and values for each parser argument
     """
-    print(type(arg_input))
     parser = argparse.ArgumentParser(description='train stylegan network')
     parser.add_argument(
         '-d',
