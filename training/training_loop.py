@@ -227,13 +227,30 @@ def training_loop(
 
         # Run training ops.
         for _mb_repeat in range(minibatch_repeats):
-            for _D_repeat in range(D_repeats):
-                try:
-                    tflib.run([D_train_op, Gs_update_op], {lod_in: sched.lod, lrate_in: sched.D_lrate, minibatch_in: sched.minibatch})
+            try:
+                for _D_repeat in range(D_repeats):
+                    try:
+                        tflib.run([D_train_op, Gs_update_op], {lod_in: sched.lod, lrate_in: sched.D_lrate, minibatch_in: sched.minibatch})
+                    except tf.errors.OutOfRangeError:
+                        print('Inner OutOfRangeError. cur_nimg:', cur_nimg)
+                        pass
+                    except tf.errors.DataLossError as e:
+                        print('Inner DataLossError. cur_nimg:', cur_nimg)
+                        pass
+                    except tf.errors.InvalidArgumentError as e:
+                        print('Inner InvalidArgumentError.')
+                        pass
                     cur_nimg += sched.minibatch
-                except tf.errors.OutOfRangeError:
-                    pass
-            tflib.run([G_train_op], {lod_in: sched.lod, lrate_in: sched.G_lrate, minibatch_in: sched.minibatch})
+                tflib.run([G_train_op], {lod_in: sched.lod, lrate_in: sched.G_lrate, minibatch_in: sched.minibatch})
+            except tf.errors.OutOfRangeError as e:
+                print('Outer OutOfRangeError. cur_nimg:', cur_nimg)
+                pass
+            except tf.errors.DataLossError as e:
+                print('DataLossError. cur_nimg:', cur_nimg)
+                pass
+            except tf.errors.InvalidArgumentError as e:
+                print('InvalidArgumentError.')
+                pass
 
         # Perform maintenance tasks once per tick.
         done = (cur_nimg >= total_kimg * 1000)
