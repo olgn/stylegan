@@ -520,12 +520,15 @@ def create_from_images(tfrecord_dir, image_dir, shuffle):
         order = tfr.choose_shuffled_order() if shuffle else np.arange(len(image_filenames))
         for idx in range(order.size):
             img = np.asarray(PIL.Image.open(image_filenames[order[idx]]))
-            if channels == 1:
-                img = img[np.newaxis, :, :] # HW => CHW
-            else:
-                img = img.transpose([2, 0, 1]) # HWC => CHW
-            tfr.add_image(img)
-
+            try:    
+                if channels == 1:
+                    img = img[np.newaxis, :, :] # HW => CHW
+                else:
+                    img = img.transpose([2, 0, 1]) # HWC => CHW
+                tfr.add_image(img)
+            except:
+                print(f'there was an error loading img: {image_filenames[order[idx]]}')
+                pass
 #----------------------------------------------------------------------------
 
 def create_from_hdf5(tfrecord_dir, hdf5_filename, shuffle):
