@@ -124,6 +124,7 @@ class TFRecordDataset:
                 if shuffle_mb > 0:
                     dset = dset.shuffle(((shuffle_mb << 20) - 1) // bytes_per_item + 1)
                 if repeat:
+                    print('Dataset is set to repeat mode.')
                     dset = dset.repeat()
                 if prefetch_mb > 0:
                     dset = dset.prefetch(((prefetch_mb << 20) - 1) // bytes_per_item + 1)
@@ -133,10 +134,11 @@ class TFRecordDataset:
             self._tf_init_ops = {lod: self._tf_iterator.make_initializer(dset) for lod, dset in self._tf_datasets.items()}
 
     # Use the given minibatch size and level-of-detail for the data returned by get_minibatch_tf().
-    def configure(self, minibatch_size, lod=0):
+    def configure(self, minibatch_size, lod=0, force=False):
         lod = int(np.floor(lod))
         assert minibatch_size >= 1 and lod in self._tf_datasets
-        if self._cur_minibatch != minibatch_size or self._cur_lod != lod:
+        if self._cur_minibatch != minibatch_size or self._cur_lod != lod or force:
+            print(f'Running dataset init ops for lod: {lod}')
             self._tf_init_ops[lod].run({self._tf_minibatch_in: minibatch_size})
             self._cur_minibatch = minibatch_size
             self._cur_lod = lod

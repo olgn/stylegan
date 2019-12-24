@@ -219,7 +219,7 @@ def training_loop(
 
         # Choose training parameters and configure training ops.
         sched = training_schedule(cur_nimg=cur_nimg, training_set=training_set, num_gpus=submit_config.num_gpus, **sched_args)
-        training_set.configure(sched.minibatch // submit_config.num_gpus, sched.lod)
+        training_set.configure(sched.minibatch // submit_config.num_gpus, lod=sched.lod)
         if reset_opt_for_new_lod:
             if np.floor(sched.lod) != np.floor(prev_lod) or np.ceil(sched.lod) != np.ceil(prev_lod):
                 G_opt.reset_optimizer_state(); D_opt.reset_optimizer_state()
@@ -233,6 +233,7 @@ def training_loop(
                         tflib.run([D_train_op, Gs_update_op], {lod_in: sched.lod, lrate_in: sched.D_lrate, minibatch_in: sched.minibatch})
                     except tf.errors.OutOfRangeError:
                         print('Inner OutOfRangeError. cur_nimg:', cur_nimg)
+                        training_set.configure(sched.minibatch // submit_config.num_gpus, lod=sched.lod, force=True)
                         pass
                     except tf.errors.DataLossError as e:
                         print('Inner DataLossError. cur_nimg:', cur_nimg)
@@ -244,6 +245,7 @@ def training_loop(
                 tflib.run([G_train_op], {lod_in: sched.lod, lrate_in: sched.G_lrate, minibatch_in: sched.minibatch})
             except tf.errors.OutOfRangeError as e:
                 print('Outer OutOfRangeError. cur_nimg:', cur_nimg)
+                training_set.configure(sched.minibatch // submit_config.num_gpus, lod=sched.lod, force=True)
                 pass
             except tf.errors.DataLossError as e:
                 print('DataLossError. cur_nimg:', cur_nimg)
